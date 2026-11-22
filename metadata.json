@@ -1,0 +1,6 @@
+{
+  "name": "GATE EC 2026 Prep",
+  "description": "GATE 2026 Electronics and Communication (EC) exam prep with AI questions, detailed explanations, lock-screen unlock quizzes, offline saved review, and cloud sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

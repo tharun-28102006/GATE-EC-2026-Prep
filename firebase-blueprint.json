@@ -1,0 +1,264 @@
+{
+  "entities": {
+    "UserStudyProfile": {
+      "title": "UserStudyProfile",
+      "description": "Per-user GATE 2026 EC preparation profile, consistency streaks, non-repeating topic rotation deck, and unlock notification settings.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase Auth UID matching document path."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name shown in the GATE CBT candidate header."
+        },
+        "dailyGoal": {
+          "type": "integer",
+          "description": "Daily target number of GATE questions (1-100)."
+        },
+        "currentStreak": {
+          "type": "integer",
+          "description": "Consecutive active study days."
+        },
+        "longestStreak": {
+          "type": "integer",
+          "description": "All-time longest daily streak."
+        },
+        "lastActiveDate": {
+          "type": "string",
+          "description": "ISO local date YYYY-MM-DD of the most recent attempt."
+        },
+        "lastSectionId": {
+          "type": "string",
+          "description": "Most recently served GATE EC section ID to prevent consecutive section repetition."
+        },
+        "remainingTopicDeck": {
+          "type": "array",
+          "description": "Shuffled queue of remaining unvisited subtopic IDs in the current rotation cycle."
+        },
+        "totalAttempted": {
+          "type": "integer",
+          "description": "Total GATE questions attempted across devices."
+        },
+        "totalCorrect": {
+          "type": "integer",
+          "description": "Total correctly answered GATE questions."
+        },
+        "netGateScore": {
+          "type": "number",
+          "description": "Cumulative net GATE marks accounting for +1/-0.33 and +2/-0.67."
+        },
+        "unlockMonitorEnabled": {
+          "type": "boolean",
+          "description": "Whether unlock-triggered quiz notifications are enabled."
+        },
+        "unlockCooldownMinutes": {
+          "type": "integer",
+          "description": "Minimum cooldown minutes between unlock quiz notifications (0 = every unlock)."
+        },
+        "darkExamTheme": {
+          "type": "boolean",
+          "description": "Whether high-contrast Night Exam dark theme is enabled."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "dailyGoal",
+        "currentStreak",
+        "longestStreak",
+        "lastActiveDate",
+        "lastSectionId",
+        "remainingTopicDeck",
+        "totalAttempted",
+        "totalCorrect",
+        "netGateScore",
+        "unlockMonitorEnabled",
+        "unlockCooldownMinutes",
+        "darkExamTheme",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SavedQuestion": {
+      "title": "SavedQuestion",
+      "description": "A bookmarked GATE 2026 EC question with full explanation synced across devices for offline review.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "sectionId": {
+          "type": "string",
+          "description": "GATE 2026 EC syllabus section ID."
+        },
+        "subtopicId": {
+          "type": "string",
+          "description": "Granular GATE 2026 EC subtopic ID."
+        },
+        "questionText": {
+          "type": "string",
+          "description": "Full question statement."
+        },
+        "options": {
+          "type": "array",
+          "description": "Exactly 4 multiple-choice option strings (A-D)."
+        },
+        "correctIndex": {
+          "type": "integer",
+          "description": "Zero-based index (0-3) of the correct option."
+        },
+        "marks": {
+          "type": "integer",
+          "description": "Official GATE question weight: 1 or 2 marks."
+        },
+        "negativeMarks": {
+          "type": "number",
+          "description": "Negative marking deduction: 0.33 or 0.67."
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["Easy", "Medium", "Hard"],
+          "description": "Question difficulty tier."
+        },
+        "explanation": {
+          "type": "string",
+          "description": "Detailed step-by-step engineering solution."
+        },
+        "keyFormula": {
+          "type": "string",
+          "description": "Key equation or law used to solve the question."
+        },
+        "source": {
+          "type": "string",
+          "enum": ["AI", "SEED"],
+          "description": "Origin of the question."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "sectionId",
+        "subtopicId",
+        "questionText",
+        "options",
+        "correctIndex",
+        "marks",
+        "negativeMarks",
+        "difficulty",
+        "explanation",
+        "keyFormula",
+        "source",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "QuestionAttempt": {
+      "title": "QuestionAttempt",
+      "description": "Immutable record of a single answered GATE 2026 EC question used for consistency tracking and performance trends.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "questionId": {
+          "type": "string",
+          "description": "Identifier of the answered question."
+        },
+        "sectionId": {
+          "type": "string",
+          "description": "GATE 2026 EC syllabus section ID."
+        },
+        "subtopicId": {
+          "type": "string",
+          "description": "Granular subtopic ID."
+        },
+        "selectedIndex": {
+          "type": "integer",
+          "description": "Zero-based option chosen by the user (0-3)."
+        },
+        "correctAnswer": {
+          "type": "boolean",
+          "description": "Whether the user selected the correct option."
+        },
+        "scoreDelta": {
+          "type": "number",
+          "description": "GATE net marks change (+1, +2, -0.33, or -0.67)."
+        },
+        "timeSpentSec": {
+          "type": "integer",
+          "description": "Elapsed seconds before submission."
+        },
+        "answeredVia": {
+          "type": "string",
+          "enum": ["IN_APP", "NOTIFICATION"],
+          "description": "Channel where the user submitted the answer."
+        },
+        "dateKey": {
+          "type": "string",
+          "description": "Local date string YYYY-MM-DD."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp written via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "questionId",
+        "sectionId",
+        "subtopicId",
+        "selectedIndex",
+        "correctAnswer",
+        "scoreDelta",
+        "timeSpentSec",
+        "answeredVia",
+        "dateKey",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserStudyProfile"
+      },
+      "description": "Per-user GATE EC study profile, streak counter, non-repeating topic deck state, and preferences."
+    },
+    "/users/{userId}/savedQuestions/{questionId}": {
+      "schema": {
+        "$ref": "#/entities/SavedQuestion"
+      },
+      "description": "User-bookmarked GATE 2026 EC questions synced across devices for offline review."
+    },
+    "/users/{userId}/attempts/{attemptId}": {
+      "schema": {
+        "$ref": "#/entities/QuestionAttempt"
+      },
+      "description": "Append-only per-user attempt logs powering daily consistency heatmaps and accuracy trend charts."
+    }
+  }
+}

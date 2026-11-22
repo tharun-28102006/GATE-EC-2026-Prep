@@ -1,0 +1,176 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- GLOBAL HARDENED PRIMITIVES ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- ENTITY VALIDATION BLUEPRINTS ---
+    function isValidUserStudyProfile(data, userId) {
+      return data.keys().hasAll([
+        'userId', 'displayName', 'dailyGoal', 'currentStreak', 'longestStreak',
+        'lastActiveDate', 'lastSectionId', 'remainingTopicDeck',
+        'totalAttempted', 'totalCorrect', 'netGateScore',
+        'unlockMonitorEnabled', 'unlockCooldownMinutes', 'darkExamTheme',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'userId', 'displayName', 'dailyGoal', 'currentStreak', 'longestStreak',
+        'lastActiveDate', 'lastSectionId', 'remainingTopicDeck',
+        'totalAttempted', 'totalCorrect', 'netGateScore',
+        'unlockMonitorEnabled', 'unlockCooldownMinutes', 'darkExamTheme',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId == userId &&
+      data.displayName is string && data.displayName.size() <= 100 &&
+      data.dailyGoal is int && data.dailyGoal >= 1 && data.dailyGoal <= 100 &&
+      data.currentStreak is int && data.currentStreak >= 0 && data.currentStreak <= 10000 &&
+      data.longestStreak is int && data.longestStreak >= 0 && data.longestStreak <= 10000 &&
+      data.lastActiveDate is string && data.lastActiveDate.size() <= 10 &&
+      data.lastSectionId is string && data.lastSectionId.size() <= 40 &&
+      data.remainingTopicDeck is list && data.remainingTopicDeck.size() <= 40 &&
+      (data.remainingTopicDeck.size() == 0 || data.remainingTopicDeck[0] is string) &&
+      data.totalAttempted is int && data.totalAttempted >= 0 && data.totalAttempted <= 1000000 &&
+      data.totalCorrect is int && data.totalCorrect >= 0 && data.totalCorrect <= data.totalAttempted &&
+      data.netGateScore is number && data.netGateScore >= -1000000 && data.netGateScore <= 2000000 &&
+      data.unlockMonitorEnabled is bool &&
+      data.unlockCooldownMinutes is int && data.unlockCooldownMinutes >= 0 && data.unlockCooldownMinutes <= 180 &&
+      data.darkExamTheme is bool &&
+      data.createdAt is timestamp && data.createdAt <= request.time &&
+      data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSavedQuestion(data, userId) {
+      return data.keys().hasAll([
+        'userId', 'sectionId', 'subtopicId', 'questionText', 'options',
+        'correctIndex', 'marks', 'negativeMarks', 'difficulty',
+        'explanation', 'keyFormula', 'source', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'userId', 'sectionId', 'subtopicId', 'questionText', 'options',
+        'correctIndex', 'marks', 'negativeMarks', 'difficulty',
+        'explanation', 'keyFormula', 'source', 'createdAt', 'updatedAt'
+      ]) &&
+      data.userId is string && data.userId == userId &&
+      data.sectionId is string && data.sectionId.size() >= 1 && data.sectionId.size() <= 40 &&
+      data.subtopicId is string && data.subtopicId.size() >= 1 && data.subtopicId.size() <= 60 &&
+      data.questionText is string && data.questionText.size() >= 1 && data.questionText.size() <= 3000 &&
+      data.options is list && data.options.size() == 4 && data.options[0] is string &&
+      data.correctIndex is int && data.correctIndex >= 0 && data.correctIndex <= 3 &&
+      data.marks is int && (data.marks == 1 || data.marks == 2) &&
+      data.negativeMarks is number && data.negativeMarks >= 0 && data.negativeMarks <= 2 &&
+      data.difficulty is string && data.difficulty in ['Easy', 'Medium', 'Hard'] &&
+      data.explanation is string && data.explanation.size() >= 1 && data.explanation.size() <= 6000 &&
+      data.keyFormula is string && data.keyFormula.size() <= 800 &&
+      data.source is string && data.source in ['AI', 'SEED'] &&
+      data.createdAt is timestamp && data.createdAt <= request.time &&
+      data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidQuestionAttempt(data, userId) {
+      return data.keys().hasAll([
+        'userId', 'questionId', 'sectionId', 'subtopicId', 'selectedIndex',
+        'correctAnswer', 'scoreDelta', 'timeSpentSec', 'answeredVia',
+        'dateKey', 'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'userId', 'questionId', 'sectionId', 'subtopicId', 'selectedIndex',
+        'correctAnswer', 'scoreDelta', 'timeSpentSec', 'answeredVia',
+        'dateKey', 'createdAt'
+      ]) &&
+      data.userId is string && data.userId == userId &&
+      data.questionId is string && data.questionId.size() >= 1 && data.questionId.size() <= 128 &&
+      data.sectionId is string && data.sectionId.size() >= 1 && data.sectionId.size() <= 40 &&
+      data.subtopicId is string && data.subtopicId.size() >= 1 && data.subtopicId.size() <= 60 &&
+      data.selectedIndex is int && data.selectedIndex >= 0 && data.selectedIndex <= 3 &&
+      data.correctAnswer is bool &&
+      data.scoreDelta is number && data.scoreDelta >= -2 && data.scoreDelta <= 2 &&
+      data.timeSpentSec is int && data.timeSpentSec >= 0 && data.timeSpentSec <= 7200 &&
+      data.answeredVia is string && data.answeredVia in ['IN_APP', 'NOTIFICATION'] &&
+      data.dateKey is string && data.dateKey.size() == 10 &&
+      data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    // --- COLLECTION RULES ---
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserStudyProfile(incoming(), userId);
+
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserStudyProfile(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'dailyGoal', 'currentStreak', 'longestStreak',
+                         'lastActiveDate', 'lastSectionId', 'remainingTopicDeck',
+                         'totalAttempted', 'totalCorrect', 'netGateScore',
+                         'unlockMonitorEnabled', 'unlockCooldownMinutes', 'darkExamTheme',
+                         'updatedAt'
+                       ]);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /savedQuestions/{questionId} {
+        allow get: if isOwner(userId) && isValidId(questionId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(questionId) &&
+                         isValidSavedQuestion(incoming(), userId);
+
+        allow update: if isOwner(userId) &&
+                         isValidId(questionId) &&
+                         isValidSavedQuestion(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'sectionId', 'subtopicId', 'questionText', 'options',
+                           'correctIndex', 'marks', 'negativeMarks', 'difficulty',
+                           'explanation', 'keyFormula', 'source', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(questionId);
+      }
+
+      match /attempts/{attemptId} {
+        allow get: if isOwner(userId) && isValidId(attemptId);
+        allow list: if isOwner(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(attemptId) &&
+                         isValidQuestionAttempt(incoming(), userId);
+
+        allow update: if false;
+        allow delete: if isOwner(userId) && isValidId(attemptId);
+      }
+    }
+  }
+}

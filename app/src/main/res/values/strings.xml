@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">GATE EC 2026 Prep</string>
+    <string name="exam_header_title">GATE 2026 • EC</string>
+    <string name="sign_in_google_cta">Sign in with Google</string>
+    <string name="unlock_monitor_channel_name">Unlock Quiz Monitor</string>
+    <string name="unlock_quiz_channel_name">GATE Unlock Quiz</string>
+</resources>
